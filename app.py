@@ -71,20 +71,41 @@ st.markdown("---")
 # Botão de previsão
 # -------------------------------
 st.subheader("🔮 Resultado da Previsão")
+
 if st.button("Calcular Previsão"):
     try:
         df_usuario = pd.DataFrame([dados_usuario])
         resultado = prever_obesidade(df_usuario)
 
-        # Exibir resultados com estilo
+        # Sucesso
         st.success("✅ Previsão realizada com sucesso!")
-        st.metric(label="IMC (calculado)", value=f"{resultado['IMC']}")
+
+        # 1️⃣ IMC + Classificação juntos
+        st.metric(
+            label="IMC (calculado)",
+            value=f"{resultado['IMC']:.2f}",
+            delta=classificar_imc(resultado["IMC"])
+        )
+
+        # Estilo de vida
         st.write(f"**Estilo de vida:** {resultado['Estilo de vida saudável']}")
 
-        # Classificação baseada no IMC
-        imc = resultado['IMC']
-        grau_imc = classificar_imc(imc)
+        # 2️⃣ Predição do modelo (Machine Learning)
+        st.subheader("🤖 Predição do Modelo")
+        st.info(
+            f"**Classificação prevista:** {resultado['pred_label_pt']}"
+        )
 
+        # 3️⃣ Comparação IMC vs Modelo
+        grau_imc = classificar_imc(resultado["IMC"])
+
+        if grau_imc != resultado["pred_label_pt"]:
+            st.warning(
+                "⚠️ A classificação do IMC e a predição do modelo são diferentes. "
+                "Isso ocorre porque o modelo considera hábitos e estilo de vida."
+            )
+
+        # Classificação visual pelo IMC
         st.subheader("📊 Classificação pelo IMC")
         if grau_imc == "Peso Normal":
             st.success(f"✅ {grau_imc}")
@@ -95,3 +116,4 @@ if st.button("Calcular Previsão"):
 
     except Exception as e:
         st.error(f"Falha na previsão: {e}")
+

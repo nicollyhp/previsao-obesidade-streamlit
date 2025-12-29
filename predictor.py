@@ -160,20 +160,20 @@ def _aplicar_schema(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # -------------------------------
-# MAPEAMENTO DA SAÍDA DO MODELO
+# Mapeamento da saída do modelo
 # -------------------------------
 def mapear_predicao(score: float) -> str:
-    if score < 1:
+    if score < 1.5:
         return "Peso Insuficiente"
-    elif score < 2:
+    elif score < 2.5:
         return "Peso Normal"
-    elif score < 3:
+    elif score < 3.5:
         return "Sobrepeso Nível I"
-    elif score < 4:
+    elif score < 4.5:
         return "Sobrepeso Nível II"
-    elif score < 5:
+    elif score < 5.5:
         return "Obesidade Tipo I"
-    elif score < 6:
+    elif score < 6.5:
         return "Obesidade Tipo II"
     else:
         return "Obesidade Tipo III"
@@ -203,10 +203,18 @@ def prever_obesidade(df_usuario: Union[pd.DataFrame, dict, List[dict]]):
 
     resultados = []
     for i, p in enumerate(preds):
+        imc_atual = round(df_usuario["IMC"].iloc[i], 2)
+
+        label_modelo = mapear_predicao(float(p))
+
+        # CLÍNICA + ML
+        if imc_atual < 25 and "Obesidade" in label_modelo:
+            label_modelo = "Sobrepeso Nível II"
+
         resultados.append({
             "pred_label_raw": float(p),
-            "pred_label_pt": mapear_predicao(float(p)),
-            "IMC": round(df_usuario["IMC"].iloc[i], 2),
+            "pred_label_pt": label_modelo,
+            "IMC": imc_atual,
             "Estilo de vida saudável": df_usuario["Estilo de vida saudável"].iloc[i],
         })
 

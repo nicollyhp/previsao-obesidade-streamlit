@@ -82,9 +82,8 @@ if st.button("Calcular Previsão"):
 
         # 1️⃣ IMC + Classificação juntos
         st.metric(
-            label="IMC (calculado)",
-            value=f"{resultado['IMC']:.2f}",
-            delta=classificar_imc(resultado["IMC"])
+        label="IMC (calculado)",
+        value=f"{resultado['IMC']:.2f}"
         )
 
         # Estilo de vida

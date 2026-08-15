@@ -21,16 +21,30 @@ RENAME_MAP = {
 # Categorias esperadas pelo modelo
 # -------------------------------
 SCHEMA_CATEGORIAS = {
-    "Gênero": ["Female", "Male"],
-    "Histórico Familiar": ["No", "Yes"],
-    "Consumo de Alimento Altamente Calórico": ["No", "Yes"],
-    "Consumo de Alimento Entre Refeições": ["No", "Sometimes", "Frequently", "Always"],
-    "Fumante": ["No", "Yes"],
-    "Monitoramento de Consumo de Calorias": ["No", "Yes"],
-    "Consumo de Álcool": ["No", "Sometimes", "Frequently", "Always"],
-    "Meio de Transporte Utilizado": [
-        "Automobile", "Bike", "Motorbike", "Public_Transportation", "Walking"
+    "Gênero": ["Feminino", "Masculino"],
+    "Histórico Familiar": ["Não", "Sim"],
+    "Consumo de Alimento Altamente Calórico": ["Não", "Sim"],
+    "Consumo de Alimento Entre Refeições": [
+        "Não",
+        "Às vezes",
+        "Frequentemente",
+        "Sempre"
     ],
+    "Fumante": ["Não", "Sim"],
+    "Monitoramento de Consumo de Calorias": ["Não", "Sim"],
+    "Consumo de Álcool": [
+        "Não",
+        "Às vezes",
+        "Frequentemente",
+        "Sempre"
+    ],
+    "Meio de Transporte Utilizado": [
+        "Automóvel",
+        "Bicicleta",
+        "Moto",
+        "Transporte Público",
+        "Caminhando"
+    ]
 }
 
 # -------------------------------
@@ -98,6 +112,7 @@ def calcular_estilo(df: pd.DataFrame) -> pd.DataFrame:
 # Normalização categórica
 # -------------------------------
 def _pt_to_en_value(col: str, val: str) -> str:
+
     v = _norm(val)
 
     if col in [
@@ -106,50 +121,94 @@ def _pt_to_en_value(col: str, val: str) -> str:
         "Monitoramento de Consumo de Calorias",
         "Consumo de Alimento Altamente Calórico",
     ]:
-        return "Yes" if v in ["sim", "yes", "true", "1", "y"] else "No"
+        return "Sim" if v in ["sim", "yes", "true", "1", "y"] else "Não"
 
     if col == "Consumo de Alimento Entre Refeições":
+
         if v in ["sempre", "always"]:
-            return "Always"
-        if v in ["frequente", "frequently"]:
-            return "Frequently"
+            return "Sempre"
+
+        if v in ["frequente", "frequently", "frequentemente"]:
+            return "Frequentemente"
+
         if v in ["as vezes", "às vezes", "sometimes"]:
-            return "Sometimes"
-        return "No"
+            return "Às vezes"
+
+        return "Não"
 
     if col == "Consumo de Álcool":
+
         if v in ["sempre", "always"]:
-            return "Always"
-        if v in ["frequente", "frequently"]:
-            return "Frequently"
+            return "Sempre"
+
+        if v in ["frequente", "frequently", "frequentemente"]:
+            return "Frequentemente"
+
         if v in ["as vezes", "às vezes", "sometimes"]:
-            return "Sometimes"
-        return "No"
+            return "Às vezes"
+
+        return "Não"
 
     if col == "Meio de Transporte Utilizado":
-        if v in ["carro", "automovel"]:
-            return "Automobile"
+
+        if v in ["carro", "automovel", "automobile"]:
+            return "Automóvel"
+
         if v in ["bicicleta", "bike"]:
-            return "Bike"
-        if v in ["moto", "motocicleta"]:
-            return "Motorbike"
+            return "Bicicleta"
+
+        if v in ["moto", "motocicleta", "motorbike"]:
+            return "Moto"
+
         if "transporte" in v:
-            return "Public_Transportation"
+            return "Transporte Público"
+
         if "pe" in v:
-            return "Walking"
-        return "Automobile"
+            return "Caminhando"
+
+        return "Automóvel"
 
     if col == "Gênero":
-        return "Female" if "fem" in v else "Male"
+
+        if v in ["feminino", "female"]:
+            return "Feminino"
+
+        if v in ["masculino", "male"]:
+            return "Masculino"
+
+        return "Feminino"
 
     return val
 
 def _normalizar_categoricos(df: pd.DataFrame) -> pd.DataFrame:
+
     df = df.copy()
+
     for col, cats in SCHEMA_CATEGORIAS.items():
+
         if col in df.columns:
-            df[col] = df[col].apply(lambda x: _pt_to_en_value(col, x))
-            df[col] = pd.Categorical(df[col], categories=cats)
+
+            df[col] = df[col].apply(
+                lambda x: _pt_to_en_value(col, x)
+            )
+
+            df[col] = pd.Categorical(
+                df[col],
+                categories=cats
+            )
+
+    return df
+
+    for col, cats in SCHEMA_CATEGORIAS.items():
+
+        if col in df.columns:
+
+            df[col] = df[col].apply(
+                lambda x: _pt_to_en_value(col, x)
+            )
+
+            df[col] = df[col].astype("category")
+
     return df
 
 def _aplicar_schema(df: pd.DataFrame) -> pd.DataFrame:
@@ -163,20 +222,20 @@ def _aplicar_schema(df: pd.DataFrame) -> pd.DataFrame:
 # Mapeamento da saída do modelo
 # -------------------------------
 def mapear_predicao(score: float) -> str:
-    if score < 1.5:
-        return "Peso Insuficiente"
-    elif score < 2.5:
-        return "Peso Normal"
-    elif score < 3.5:
-        return "Sobrepeso Nível I"
-    elif score < 4.5:
-        return "Sobrepeso Nível II"
-    elif score < 5.5:
-        return "Obesidade Tipo I"
-    elif score < 6.5:
-        return "Obesidade Tipo II"
-    else:
-        return "Obesidade Tipo III"
+
+    classe = round(float(score))
+
+    mapa = {
+        0: "Obesidade Tipo I",
+        1: "Obesidade Tipo II",
+        2: "Obesidade Tipo III",
+        3: "Peso Insuficiente",
+        4: "Peso Normal",
+        5: "Sobrepeso Nível I",
+        6: "Sobrepeso Nível II"
+    }
+
+    return mapa.get(classe, "Desconhecido")
 
 # -------------------------------
 # Função principal

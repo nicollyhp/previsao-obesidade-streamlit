@@ -58,7 +58,7 @@ A aplicação foi desenvolvida utilizando **Streamlit**, permitindo interação 
 
 ### Interface da aplicação
 
-![Interface da aplicação](imagens/interface.png)
+![Interface da aplicação](imagens/interface-projeto.png)
 
 ### Resultado da previsão
 
